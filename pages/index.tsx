@@ -1,16 +1,25 @@
-import Head from 'next/head'
-import clientPromise from '../lib/mongodb'
-import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
+import Head from "next/head";
+import clientPromise from "../lib/mongodb";
+import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
+import LetterForm from "../component/landing";
+import StackedPaper from "../component/paper";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 type ConnectionStatus = {
-  isConnected: boolean
-}
+  isConnected: boolean;
+};
+type Message = {
+  _id: string;
+  name: string;
+  message: string;
+};
 
 export const getServerSideProps: GetServerSideProps<
   ConnectionStatus
 > = async () => {
   try {
-    await clientPromise
+    await clientPromise;
     // `await clientPromise` will use the default database passed in the MONGODB_URI
     // However you can use another database (e.g. myDatabase) by replacing the `await clientPromise` with the following code:
     //
@@ -22,236 +31,170 @@ export const getServerSideProps: GetServerSideProps<
 
     return {
       props: { isConnected: true },
-    }
+    };
   } catch (e) {
-    console.error(e)
+    console.error(e);
     return {
       props: { isConnected: false },
-    }
+    };
   }
-}
+};
 
 export default function Home({
   isConnected,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const [messagesList, setMessages] = useState([]);
+
+  useEffect(() => {
+    getMessage();
+  }, []);
+
+  async function getMessage() {
+    try {
+      const response = await axios.get("/api/getMessages");
+
+      console.log(response.data);
+      setMessages(response.data);
+    } catch (error) {}
+  }
+
   return (
-    <div className="container">
+    <>
       <Head>
-        <title>Create Next App</title>
+        <title>M & B Landing Page</title>
+        <meta name="description" content="M & B Landing Page" />
         <link rel="icon" href="/favicon.ico" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
       </Head>
 
       <main>
-        <h1 className="title">
-          Welcome to <a href="https://nextjs.org">Next.js with MongoDB!</a>
-        </h1>
-
-        {isConnected ? (
-          <h2 className="subtitle">You are connected to MongoDB</h2>
-        ) : (
-          <h2 className="subtitle">
-            You are NOT connected to MongoDB. Check the <code>README.md</code>{' '}
-            for instructions.
-          </h2>
-        )}
-
-        <p className="description">
-          Get started by editing <code>pages/index.js</code>
-        </p>
-
-        <div className="grid">
-          <a href="https://nextjs.org/docs" className="card">
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className="card">
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className="card"
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="card"
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+        <div
+          style={{
+            margin: "auto",
+            position: "relative",
+            width: "100%",
+            height: "70vh",
+          }}
+        >
+          <LetterForm />
+        </div>
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          {messagesList.map((item: Message) => (
+            <StackedPaper
+              _id={item._id}
+              name={item.name}
+              message={item.message}
+            />
+          ))}
         </div>
       </main>
 
-      <footer>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className="logo" />
-        </a>
-      </footer>
-
-      <style jsx>{`
-        .container {
-          min-height: 100vh;
-          padding: 0 0.5rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        main {
-          padding: 5rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer {
-          width: 100%;
-          height: 100px;
-          border-top: 1px solid #eaeaea;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer img {
-          margin-left: 0.5rem;
-        }
-
-        footer a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        a {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        .title a {
-          color: #0070f3;
-          text-decoration: none;
-        }
-
-        .title a:hover,
-        .title a:focus,
-        .title a:active {
-          text-decoration: underline;
-        }
-
-        .title {
-          margin: 0;
-          line-height: 1.15;
-          font-size: 4rem;
-        }
-
-        .title,
-        .description {
-          text-align: center;
-        }
-
-        .subtitle {
-          font-size: 2rem;
-        }
-
-        .description {
-          line-height: 1.5;
-          font-size: 1.5rem;
-        }
-
-        code {
-          background: #fafafa;
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-size: 1.1rem;
-          font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-            DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-        }
-
-        .grid {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
-
-          max-width: 800px;
-          margin-top: 3rem;
-        }
-
-        .card {
-          margin: 1rem;
-          flex-basis: 45%;
-          padding: 1.5rem;
-          text-align: left;
-          color: inherit;
-          text-decoration: none;
-          border: 1px solid #eaeaea;
-          border-radius: 10px;
-          transition: color 0.15s ease, border-color 0.15s ease;
-        }
-
-        .card:hover,
-        .card:focus,
-        .card:active {
-          color: #0070f3;
-          border-color: #0070f3;
-        }
-
-        .card h3 {
-          margin: 0 0 1rem 0;
-          font-size: 1.5rem;
-        }
-
-        .card p {
-          margin: 0;
-          font-size: 1.25rem;
-          line-height: 1.5;
-        }
-
-        .logo {
-          height: 1em;
-        }
-
-        @media (max-width: 600px) {
-          .grid {
-            width: 100%;
-            flex-direction: column;
-          }
-        }
-      `}</style>
-
       <style jsx global>{`
-        html,
-        body {
-          padding: 0;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-            Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-            sans-serif;
-        }
+        @import url(https://fonts.googleapis.com/css?family=Dancing+Script:400,700);
 
         * {
           box-sizing: border-box;
         }
+
+        body {
+          margin: 0;
+          padding: 0;
+          /* background-color: #c8e7d8; */
+          color: #4e5e72;
+          text-align: center;
+          font-family: monospace;
+        }
+
+        h1,
+        p {
+          margin: 0;
+          padding: 0;
+        }
+
+        h1 {
+          font-size: 2rem;
+          font-family: "Dancing Script";
+        }
+
+        .small {
+          display: block;
+          padding: 1rem 0;
+          font-size: 0.8rem;
+          transition: opacity 0.33s;
+        }
+
+        textarea,
+        input,
+        button {
+          line-height: 1.5rem;
+          border: 0;
+          outline: none;
+          font-family: inherit;
+          appearance: none;
+        }
+
+        textarea,
+        input {
+          color: #4e5e72;
+          background-color: transparent;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='24'><rect fill='rgb(229, 225, 187)' x='0' y='23' width='10' height='1'/></svg>");
+          max-height: 100%;
+          font-size: 16px;
+        }
+        textarea,
+        input:focus {
+          touch-action: none;
+        }
+
+        textarea {
+          width: 100%;
+          height: 8rem;
+          resize: none;
+        }
+
+        input {
+          width: 50%;
+          margin-bottom: 1rem;
+        }
+
+        input[type="text"]:invalid,
+        input[type="email"]:invalid {
+          box-shadow: none;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='24'><rect fill='rgba(240, 132, 114, 0.5)' x='0' y='23' width='10' height='1'/></svg>");
+        }
+
+        button {
+          padding: 0.5rem 1rem;
+          border-radius: 0.25rem;
+          background-color: rgba(78, 94, 114, 0.9);
+          color: white;
+          font-size: 1rem;
+          transition: background-color 0.2s;
+        }
+
+        button:hover,
+        button:focus {
+          outline: none;
+          background-color: rgba(78, 94, 114, 1);
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='24'><rect fill='rgba(78, 94, 114, 0.3)' x='0' y='23' width='10' height='1'/></svg>");
+          outline: none;
+        }
       `}</style>
-    </div>
-  )
+    </>
+  );
 }
