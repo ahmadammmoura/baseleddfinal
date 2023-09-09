@@ -18,7 +18,7 @@ export default async (req, res) => {
         const db = client.db("messages");
 
         // Insert the message into the 'messagesList' collection
-        const result = await db.collection('messagesList').insertOne({ name,message });
+        const result = await db.collection('messagesList').insertOne({ name,message,date:new Date });
 
         res.status(200).json({ success: true, message: 'Message created successfully' });
     } catch (e) {

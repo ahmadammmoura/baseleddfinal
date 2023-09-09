@@ -8,7 +8,7 @@ export default async (req, res) => {
        const messages = await db
            .collection("messagesList")
            .find({})
-           .sort({ metacritic: -1 })
+           .sort({ date: -1 })
            .toArray();
 
        res.json(messages);
